@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\Role\RoleInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Kunstmaan\ApiBundle\Annotations as Api;
 
 /**
  * Role Entity
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Entity
  * @ORM\Table( name="kuma_roles" )
  * @UniqueEntity("role")
+ * @Api\ApiMeta()
  */
 class Role implements RoleInterface
 {
@@ -21,12 +23,14 @@ class Role implements RoleInterface
      * @ORM\Id
      * @ORM\Column(type="integer", name="id")
      * @ORM\GeneratedValue(strategy="AUTO")
+     * @Api\ApiColumn(type="id")
      */
     protected $id;
 
     /**
      * @Assert\NotBlank()
      * @ORM\Column(type="string", name="role", unique=true, length=70)
+     * @Api\ApiColumn(type="string")
      */
     protected $role;
 

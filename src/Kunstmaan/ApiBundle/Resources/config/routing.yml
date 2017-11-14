@@ -1,0 +1,4 @@
+kunstmaan_api:
+    path: /api
+    defaults:
+        _controller: KunstmaanApiBundle:Api:api

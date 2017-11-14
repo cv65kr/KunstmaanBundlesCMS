@@ -1,0 +1,4 @@
+services:
+#    kunstmaan_api.example:
+#        class: Kunstmaan\ApiBundle\Example
+#        arguments: ["@service_id", "plain_value", "%parameter%"]

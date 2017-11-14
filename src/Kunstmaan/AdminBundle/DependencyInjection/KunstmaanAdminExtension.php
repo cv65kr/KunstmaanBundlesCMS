@@ -122,6 +122,10 @@ class KunstmaanAdminExtension extends Extension implements PrependExtensionInter
         return __DIR__.'/../Resources/config/schema';
     }
 
+    /**
+     * @param ContainerBuilder $container
+     * @param array $menuItems
+     */
     private function addSimpleMenuAdaptor(ContainerBuilder $container, array $menuItems)
     {
         $definition = new Definition('Kunstmaan\AdminBundle\Helper\Menu\SimpleMenuAdaptor', [
