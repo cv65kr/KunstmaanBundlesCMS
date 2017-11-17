@@ -1,5 +1,5 @@
 parameters:
-    kunstmaan_search.hostname: 'elk'
+    kunstmaan_search.hostname: 'localhost'
     kunstmaan_search.port: 9200
     kunstmaan_search.search_provider: 'Elastica'
     kunstmaan_search.search_configuration_chain.class: Kunstmaan\SearchBundle\Configuration\SearchConfigurationChain
