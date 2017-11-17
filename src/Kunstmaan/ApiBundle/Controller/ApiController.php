@@ -11,6 +11,4 @@ final class ApiController extends GraphQLController
         $this->get('graphql.schema');
         return $this->defaultAction();
     }
-
-
 }

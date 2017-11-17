@@ -5,9 +5,10 @@ namespace Kunstmaan\ApiBundle\Type;
 use Doctrine\Common\Annotations\Reader;
 use Kunstmaan\ApiBundle\Annotations\ApiColumn;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Youshido\GraphQL\Type\ListType\ListType;
 use Youshido\GraphQL\Type\Object\AbstractObjectType;
 
-class ApiType extends AbstractObjectType
+final class ApiType extends AbstractObjectType
 {
     private $class;
 
@@ -28,20 +29,36 @@ class ApiType extends AbstractObjectType
     {
         $fields = [];
         foreach ( $this->findAllProperties() as $field ) {
+
+            $result = [];
             if ( $field->getMappedBy() !== null ) {
-                $type = $this->container->get($field->getMappedBy());
-            } else {
+                $result['type'] = new ListType(
+                    $this->container->get(
+                        $field->getMappedBy()
+                    )
+                );
+                $result['resolve'] = [
+                    '@kunstmaan_api.resolver.'.$this->getServiceName($field->getMappedBy()),
+                    'resolveAll'
+                ];
+            }
+            else {
                 $class = $field->getColumnClass();
-                $type = new $class();
+                $result['type'] = new $class();
             }
 
-            $fields[$field->getName()] = [
-                'type' => $type,
-                'description' => $field->getDescription()
-            ];
+            $result['description'] = $field->getDescription();
+
+            $fields[$field->getName()] = $result;
         }
 
         $config->addFields($fields);
+    }
+
+    private function getServiceName($name)
+    {
+        $name = explode('.', $name);
+        return end($name);
     }
 
     private function findAllProperties()

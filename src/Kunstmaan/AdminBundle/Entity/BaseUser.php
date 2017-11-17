@@ -11,6 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Kunstmaan\ApiBundle\Annotations as Api;
 
 abstract class BaseUser extends AbstractUser
 {
@@ -18,26 +19,31 @@ abstract class BaseUser extends AbstractUser
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
+     * @Api\ApiColumn(type="id")
      */
     protected $id;
 
     /**
      * The doctrine metadata is set dynamically in Kunstmaan\AdminBundle\EventListener\MappingListener
+     * @Api\ApiColumn(mappedBy="kunstmaan_api.type.group")
      */
     protected $groups;
 
     /**
      * @ORM\Column(type="string", name="admin_locale", length=5, nullable=true)
+     * @Api\ApiColumn(type="string")
      */
     protected $adminLocale;
 
     /**
      * @ORM\Column(type="boolean", name="password_changed", nullable=true)
+     * @Api\ApiColumn(type="boolean")
      */
     protected $passwordChanged;
 
     /**
      * @ORM\Column(name="google_id", type="string", length=255, nullable=true)
+     * @Api\ApiColumn(type="string")
      */
     protected $googleId;
 
