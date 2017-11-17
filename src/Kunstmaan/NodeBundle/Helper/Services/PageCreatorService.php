@@ -2,15 +2,16 @@
 
 namespace Kunstmaan\NodeBundle\Helper\Services;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use Kunstmaan\AdminBundle\Repository\UserRepository;
 use Kunstmaan\NodeBundle\Entity\HasNodeInterface;
 use Kunstmaan\NodeBundle\Entity\Node;
+use Kunstmaan\NodeBundle\Entity\NodeTranslation;
 use Kunstmaan\NodeBundle\Repository\NodeRepository;
 use Kunstmaan\PagePartBundle\Helper\HasPagePartsInterface;
+use Kunstmaan\SeoBundle\Entity\Seo;
 use Kunstmaan\SeoBundle\Repository\SeoRepository;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Service to create new pages.
@@ -18,51 +19,35 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class PageCreatorService
 {
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
-    protected $entityManager;
+    private $entityManager;
 
     /**
      * @var ACLPermissionCreatorService
      */
-    protected $aclPermissionCreatorService;
+    private $aclPermissionCreatorService;
 
     /**
      * @var string
      */
-    protected $userEntityClass;
-
-
-    public function setEntityManager($entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
-
-    public function setACLPermissionCreatorService($aclPermissionCreatorService)
-    {
-        $this->aclPermissionCreatorService = $aclPermissionCreatorService;
-    }
-
-    public function setUserEntityClass($userEntityClass)
-    {
-        $this->userEntityClass = $userEntityClass;
-    }
+    private $userEntityClass;
 
     /**
-     * Sets the Container. This is still here for backwards compatibility.
-     *
-     * The ContainerAwareInterface has been removed so the container won't be injected automatically.
-     * This function is just there for code that calls it manually.
-     *
-     * @param ContainerInterface $container A ContainerInterface instance.
-     *
-     * @api
+     * PageCreatorService constructor.
+     * @param EntityManagerInterface $entityManager
+     * @param ACLPermissionCreatorService $aclPermissionCreatorService
+     * @param $userEntityClass
      */
-    public function setContainer(ContainerInterface $container = null)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        ACLPermissionCreatorService $aclPermissionCreatorService,
+        $userEntityClass
+    )
     {
-        $this->setEntityManager($container->get('doctrine.orm.entity_manager'));
-        $this->setACLPermissionCreatorService($container->get('kunstmaan_node.acl_permission_creator_service'));
-        $this->setUserEntityClass($container->getParameter('fos_user.model.user.class'));
+        $this->entityManager                = $entityManager;
+        $this->aclPermissionCreatorService  = $aclPermissionCreatorService;
+        $this->userEntityClass              = $userEntityClass;
     }
 
     /**
@@ -95,37 +80,20 @@ class PageCreatorService
      *
      * @throws \InvalidArgumentException
      */
-    public function createPage(HasNodeInterface $pageTypeInstance, array $translations, array $options = array())
+    public function createPage(HasNodeInterface $pageTypeInstance, array $translations, array $options = [])
     {
-        if (is_null($options)) {
-            $options = array();
-        }
-
-        if (is_null($translations) || (count($translations) == 0)) {
+        if (empty($translations)) {
             throw new \InvalidArgumentException('There has to be at least 1 translation in the translations array');
         }
-
-        $em = $this->entityManager;
-
+        
         /** @var NodeRepository $nodeRepo */
-        $nodeRepo = $em->getRepository('KunstmaanNodeBundle:Node');
-        /** @var $userRepo UserRepository */
-        $userRepo = $em->getRepository($this->userEntityClass);
-        /** @var $seoRepo SeoRepository */
-        try {
-            $seoRepo = $em->getRepository('KunstmaanSeoBundle:Seo');
-        } catch (ORMException $e) {
-            $seoRepo = null;
-        }
-
-        $pagecreator = array_key_exists('creator', $options) ? $options['creator'] : 'pagecreator';
-        $creator     = $userRepo->findOneBy(array('username' => $pagecreator));
-
-        $parent = isset($options['parent']) ? $options['parent'] : null;
-
-        $pageInternalName = isset($options['page_internal_name']) ? $options['page_internal_name'] : null;
-
-        $setOnline = isset($options['set_online']) ? $options['set_online'] : false;
+        $nodeRepo = $this->entityManager->getRepository(Node::class);
+        
+        $pagecreator        = array_key_exists('creator', $options) ? $options['creator'] : 'pagecreator';
+        $creator            = $this->entityManager->getRepository($this->userEntityClass)->findOneBy(['username' => $pagecreator]);
+        $parent             = isset($options['parent']) ? $options['parent'] : null;
+        $pageInternalName   = isset($options['page_internal_name']) ? $options['page_internal_name'] : null;
+        $setOnline          = isset($options['set_online']) ? $options['set_online'] : false;
 
         // We need to get the language of the first translation so we can create the rootnode.
         // This will also create a translationnode for that language attached to the rootnode.
@@ -133,7 +101,7 @@ class PageCreatorService
         $rootNode = null;
 
         /* @var \Kunstmaan\NodeBundle\Repository\NodeTranslationRepository $nodeTranslationRepo*/
-        $nodeTranslationRepo = $em->getRepository('KunstmaanNodeBundle:NodeTranslation');
+        $nodeTranslationRepo = $this->entityManager->getRepository(NodeTranslation::class);
 
         foreach ($translations as $translation) {
             $language = $translation['language'];
@@ -143,8 +111,8 @@ class PageCreatorService
             if ($first) {
                 $first = false;
 
-                $em->persist($pageTypeInstance);
-                $em->flush($pageTypeInstance);
+                $this->entityManager->persist($pageTypeInstance);
+                $this->entityManager->flush();
 
                 // Fetch the translation instead of creating it.
                 // This returns the rootnode.
@@ -154,53 +122,51 @@ class PageCreatorService
                     $rootNode->setHiddenFromNav($options['hidden_from_nav']);
                 }
 
-                if (!is_null($parent)) {
+                if (null !== $parent) {
                     if ($parent instanceof HasPagePartsInterface) {
                         $parent = $nodeRepo->getNodeFor($parent);
                     }
                     $rootNode->setParent($parent);
                 }
 
-                $em->persist($rootNode);
-                $em->flush($rootNode);
+                $this->entityManager->persist($rootNode);
+                $this->entityManager->flush();
 
                 $translationNode = $rootNode->getNodeTranslation($language, true);
             } else {
                 // Clone the $pageTypeInstance.
                 $pageTypeInstance = clone $pageTypeInstance;
 
-                $em->persist($pageTypeInstance);
-                $em->flush($pageTypeInstance);
+                $this->entityManager->persist($pageTypeInstance);
+                $this->entityManager->flush();
 
                 // Create the translationnode.
                 $translationNode = $nodeTranslationRepo->createNodeTranslationFor($pageTypeInstance, $language, $rootNode, $creator);
             }
 
             // Make SEO.
-            $seo = null;
-
-            if (!is_null($seoRepo)) {
-                $seo = $seoRepo->findOrCreateFor($pageTypeInstance);
-            }
+            $seo = $this->entityManager->getRepository(Seo::class)->findOrCreateFor($pageTypeInstance);
 
             $callback($pageTypeInstance, $translationNode, $seo);
 
             // Overwrite the page title with the translated title
             $pageTypeInstance->setTitle($translationNode->getTitle());
-            $em->persist($pageTypeInstance);
-            $em->persist($translationNode);
-            $em->flush($pageTypeInstance);
-            $em->flush($translationNode);
+
+            $this->entityManager->persist($pageTypeInstance);
+            $this->entityManager->flush();
+
+            $this->entityManager->persist($translationNode);
+            $this->entityManager->flush();
 
             $translationNode->setOnline($setOnline);
 
-            if (!is_null($seo)) {
-                $em->persist($seo);
-                $em->flush($seo);
+            if (null !== $seo) {
+                $this->entityManager->persist($seo);
+                $this->entityManager->flush();
             }
 
-            $em->persist($translationNode);
-            $em->flush($translationNode);
+            $this->entityManager->persist($translationNode);
+            $this->entityManager->flush();
         }
 
         // ACL
