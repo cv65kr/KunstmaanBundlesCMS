@@ -11,12 +11,14 @@ use InvalidArgumentException;
 use Symfony\Component\Security\Core\Role\RoleInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Kunstmaan\ApiBundle\Annotations as Api;
 
 /**
  * Group
  *
  * @ORM\Entity
  * @ORM\Table(name="kuma_groups")
+ * @Api\ApiMeta()
  */
 class Group implements RoleInterface, GroupInterface
 {
@@ -24,12 +26,14 @@ class Group implements RoleInterface, GroupInterface
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
+     * @Api\ApiColumn(type="id")
      */
     protected $id;
 
     /**
      * @Assert\NotBlank()
      * @ORM\Column(type="string")
+     * @Api\ApiColumn(type="string")
      */
     protected $name;
 
@@ -39,6 +43,7 @@ class Group implements RoleInterface, GroupInterface
      *      joinColumns={@ORM\JoinColumn(name="group_id", referencedColumnName="id")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="role_id", referencedColumnName="id")}
      * )
+     * @Api\ApiColumn(mappedBy="role")
      */
     protected $roles;
 

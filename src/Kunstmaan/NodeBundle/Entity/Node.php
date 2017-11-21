@@ -10,6 +10,7 @@ use Kunstmaan\AdminBundle\Entity\AbstractEntity;
 use Kunstmaan\NodeBundle\Form\NodeAdminType;
 use Kunstmaan\UtilitiesBundle\Helper\ClassLookup;
 use Symfony\Component\Validator\Constraints as Assert;
+use Kunstmaan\ApiBundle\Annotations as Api;
 
 /**
  * Node
@@ -26,10 +27,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\HasLifecycleCallbacks()
  * @ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")
  * @Gedmo\Tree(type="nested")
+ * @Api\ApiMeta()
  */
 class Node extends AbstractEntity implements GedmoNode
 {
-
     /**
      * @var Node
      *
@@ -74,6 +75,7 @@ class Node extends AbstractEntity implements GedmoNode
      * @var ArrayCollection
      * @Assert\Valid()
      * @ORM\OneToMany(targetEntity="NodeTranslation", mappedBy="node")
+     * @Api\ApiColumn(mappedBy="node_translation")
      */
     protected $nodeTranslations;
 
@@ -95,6 +97,7 @@ class Node extends AbstractEntity implements GedmoNode
      * @var string
      *
      * @ORM\Column(type="string", nullable=false, name="ref_entity_name")
+     * @Api\ApiColumn(type="string")
      */
     protected $refEntityName;
 
@@ -102,6 +105,7 @@ class Node extends AbstractEntity implements GedmoNode
      * @var string
      *
      * @ORM\Column(type="string", nullable=true, name="internal_name")
+     * @Api\ApiColumn(type="string")
      */
     protected $internalName;
 

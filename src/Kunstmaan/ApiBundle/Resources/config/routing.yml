@@ -1,0 +1,4 @@
+kunstmaan_api_index:
+    path: /
+    defaults:
+        _controller: kunstmaan_api.controller:indexAction

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Kunstmaan\AdminBundle\Entity\AbstractEntity;
 use Kunstmaan\NodeBundle\Form\NodeTranslationAdminType;
 use Symfony\Component\Validator\Constraints as Assert;
+use Kunstmaan\ApiBundle\Annotations as Api;
 
 /**
  * NodeTranslation
@@ -19,15 +20,16 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     indexes={@ORM\Index(name="idx__node_translation_lang_url", columns={"lang", "url"})}
  * )
  * @ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")
+ * @Api\ApiMeta()
  */
 class NodeTranslation extends AbstractEntity
 {
-
     /**
      * @var Node
      *
      * @ORM\ManyToOne(targetEntity="Node", inversedBy="nodeTranslations")
      * @ORM\JoinColumn(name="node_id", referencedColumnName="id")
+     * @Api\ApiColumn(mappedBy="node")
      */
     protected $node;
 
@@ -35,6 +37,7 @@ class NodeTranslation extends AbstractEntity
      * @var string
      *
      * @ORM\Column(type="string")
+     * @Api\ApiColumn(type="string")
      */
     protected $lang;
 
@@ -49,6 +52,7 @@ class NodeTranslation extends AbstractEntity
      * @var string
      *
      * @ORM\Column(type="string")
+     * @Api\ApiColumn(type="string")
      */
     protected $title;
 
@@ -57,6 +61,7 @@ class NodeTranslation extends AbstractEntity
      *
      * @ORM\Column(type="string", nullable=true)
      * @Assert\Regex("/^[a-zA-Z0-9\-_\/]+$/")
+     * @Api\ApiColumn(type="string")
      */
     protected $slug;
 
@@ -64,6 +69,7 @@ class NodeTranslation extends AbstractEntity
      * @var string
      *
      * @ORM\Column(type="string", nullable=true)
+     * @Api\ApiColumn(type="string")
      */
     protected $url;
 

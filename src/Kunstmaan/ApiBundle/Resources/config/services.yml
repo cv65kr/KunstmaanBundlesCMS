@@ -1,0 +1,8 @@
+parameters:
+    kunstmaan_api.schema.class: 'Kunstmaan\ApiBundle\Schema\ApiSchema'
+    kunstmaan_api.controller.class: 'Kunstmaan\ApiBundle\Controller\ApiController'
+
+services:
+    graphql.schema:
+        class: "%kunstmaan_api.schema.class%"
+        arguments: ["@service_container", "@event_dispatcher"]
