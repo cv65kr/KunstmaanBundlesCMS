@@ -58,6 +58,6 @@ query {
 - [ ] Mutations ( simple and advanced for e.g. node)
 - [ ] Refactor some parts of code
 - [ ] Add annotations to Entity
-- [ ] Security - token
 - [ ] Dynamic schema
 - [ ] Event Dispatcher for Schema
+- [ ] Security [https://github.com/shieldfy/API-Security-Checklist](https://github.com/shieldfy/API-Security-Checklist)
